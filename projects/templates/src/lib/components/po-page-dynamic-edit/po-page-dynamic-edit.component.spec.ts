@@ -761,6 +761,17 @@ describe('PoPageDynamicEditComponent: ', () => {
       expect(component['poPageDynamicService'].updateResource).toHaveBeenCalledWith(id, model);
     }));
 
+    it('save: should call `resolveUniqueKey`', () => {
+      component.model = { name: 'Angular' };
+
+      spyOn(component, <any>'resolveUniqueKey');
+      spyOn(component, <any>'updateModel');
+
+      component['save']('testSave/');
+
+      expect(component['resolveUniqueKey']).toHaveBeenCalledWith(component.model);
+    });
+
     it('save: shouldn`t call executeSave if allowAction is false', () => {
       const returnBeforeSave: PoPageDynamicEditBeforeSave = { allowAction: false };
 
@@ -777,6 +788,7 @@ describe('PoPageDynamicEditComponent: ', () => {
       const returnBeforeSave: PoPageDynamicEditBeforeSave = { allowAction: true };
       const newAction = jasmine.createSpy('newAction');
 
+      spyOn(component, <any>'resolveUniqueKey').and.returnValue('1');
       spyOn(component['poPageDynamicEditActionsService'], 'beforeSave').and.returnValue(of(returnBeforeSave));
       spyOn(component, <any>'executeSave');
       spyOn(component, <any>'updateModel');
@@ -784,7 +796,7 @@ describe('PoPageDynamicEditComponent: ', () => {
       component['save'](newAction);
 
       expect(component['executeSave']).not.toHaveBeenCalled();
-      expect(newAction).toHaveBeenCalledWith(component.model);
+      expect(newAction).toHaveBeenCalledWith(component.model, '1');
     });
 
     it('save: should call executeSave if allowAction is true', () => {
@@ -1124,6 +1136,44 @@ describe('PoPageDynamicEditComponent: ', () => {
 
       expect(pageActions.length).toBe(2);
       expect(Array.isArray(pageActions)).toBe(true);
+    });
+
+    it('resolveUniqueKey: should return `formatUniqueKey` value if `params.id` is truthy', () => {
+      const model = { name: 'name' };
+      const id = '1';
+      const activatedRoute: any = {
+        snapshot: {
+          params: { id }
+        }
+      };
+
+      component['activatedRoute'] = activatedRoute;
+
+      spyOn(component, <any>'formatUniqueKey').and.returnValue('1');
+
+      const expectedResult = component['resolveUniqueKey'](model);
+
+      expect(component['formatUniqueKey']).toHaveBeenCalledWith(model);
+      expect(expectedResult).toBe('1');
+    });
+
+    it('resolveUniqueKey: should return undefined if `params.id` is undefined', () => {
+      const model = { name: 'name' };
+      const id = undefined;
+      const activatedRoute: any = {
+        snapshot: {
+          params: { id }
+        }
+      };
+
+      component['activatedRoute'] = activatedRoute;
+
+      spyOn(component, <any>'formatUniqueKey');
+
+      const expectedResult = component['resolveUniqueKey'](model);
+
+      expect(component['formatUniqueKey']).not.toHaveBeenCalled();
+      expect(expectedResult).toBe(undefined);
     });
   });
 });

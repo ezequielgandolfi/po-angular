@@ -39,7 +39,7 @@ export interface PoPageDynamicEditActions {
    * em [Guia de implementação de APIs](https://po-ui.io/guides/api#successMessages)
    *
    */
-  beforeSave?: string | ((resource: any) => PoPageDynamicEditBeforeSave);
+  beforeSave?: string | ((resource: any, id: string) => PoPageDynamicEditBeforeSave);
 
   /**
    * @description
@@ -78,7 +78,7 @@ export interface PoPageDynamicEditActions {
    *  - é responsabilidade do desenvolvedor implementar a navegação e/ou envio dos dados
    * para o servidor ou outro comportamento desejado.
    */
-  save?: string | Function;
+  save?: string | ((resource: any, id: string) => void);
 
   /**
    * @description
