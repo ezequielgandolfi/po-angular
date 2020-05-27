@@ -1,6 +1,8 @@
 import { EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild, Directive } from '@angular/core';
 
-import { Observable, Subscription } from 'rxjs';
+import { Observable, Subscription, throwError } from 'rxjs';
+import { catchError } from 'rxjs/operators';
+
 import { browserLanguage, isTypeof, poLocaleDefault } from '../../../../utils/util';
 import { PoModalAction } from '../../../../components/po-modal';
 import { PoModalComponent } from '../../../../components/po-modal/po-modal.component';
@@ -173,11 +175,14 @@ export abstract class PoLookupModalBaseComponent implements OnDestroy, OnInit {
     this.page = 1;
     if (this.searchValue) {
       this.isLoading = true;
-      this.searchSubscription = this.getFilteredItems(this.searchValue).subscribe(data => {
-        this.items = data.items;
-        this.hasNext = data.hasNext;
-        this.isLoading = false;
-      });
+      this.searchSubscription = this.getFilteredItems(this.searchValue)
+        .pipe(
+          catchError(error => {
+            this.setLookupResponseProperties();
+            return throwError(error);
+          })
+        )
+        .subscribe((data: PoLookupResponseApi) => this.setLookupResponseProperties(data));
     } else {
       this.initializeData();
     }
@@ -244,10 +249,14 @@ export abstract class PoLookupModalBaseComponent implements OnDestroy, OnInit {
     this.isLoading = true;
 
     this.filterSubscription = this.getFilteredItems('').subscribe(data => {
-      this.items = data.items;
-      this.hasNext = data.hasNext;
-      this.isLoading = false;
+      this.setLookupResponseProperties(data);
     });
+  }
+
+  private setLookupResponseProperties(data?: PoLookupResponseApi) {
+    this.items = data?.items ?? [];
+    this.hasNext = data?.hasNext ?? false;
+    this.isLoading = false;
   }
 
   private setTableLiterals() {
