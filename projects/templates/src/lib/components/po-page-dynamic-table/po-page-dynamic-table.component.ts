@@ -559,7 +559,28 @@ export class PoPageDynamicTableComponent extends PoPageDynamicListBaseComponent 
     const metadata$ = this.getMetadata(serviceApiFromRoute, onLoad);
     const data$ = this.loadData();
 
-    this.subscriptions.add(concat(metadata$, data$).subscribe());
+    const initialFilters = this.getInitialValuesFromFilter();
+
+    if (Object.keys(initialFilters).length) {
+      this.subscriptions.add(metadata$.subscribe());
+    } else {
+      this.subscriptions.add(concat(metadata$, data$).subscribe());
+    }
+  }
+
+  private getInitialValuesFromFilter() {
+    const initialFilters = this.filters.reduce(
+      (result, item) => Object.assign(result, { [item.property]: item.initValue }),
+      {}
+    );
+
+    Object.keys(initialFilters).filter(key => {
+      if (!initialFilters[key]) {
+        delete initialFilters[key];
+      }
+    });
+
+    return initialFilters;
   }
 
   private loadOptionsOnInitialize(onLoad: UrlOrPoCustomizationFunction) {

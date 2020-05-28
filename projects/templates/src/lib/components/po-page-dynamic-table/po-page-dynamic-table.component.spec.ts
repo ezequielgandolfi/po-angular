@@ -436,6 +436,15 @@ describe('PoPageDynamicTableComponent:', () => {
         expect(component.title).toEqual('Titulo Original');
       }));
 
+      // it(`shouldn't call 'loadData' if 'initialFilters'`, () => {
+      //   spyOn(component, <any>'getInitialValuesFromFilter').and.returnValue({name: 'teste'})
+      //   spyOn(component, <any>'loadData').and.returnValue(of('data'));
+      //   spyOn(component, <any>'getMetadata').and.returnValue(of('metadata'));
+
+      //   component['loadDataFromAPI']();
+      //   expect(component['subscriptions']['_subscriptions']).toBeNull();
+      // });
+
       it('should call `getMetadata` and mantain properties when response is empty', fakeAsync(() => {
         const activatedRoute: any = {
           snapshot: {
@@ -460,6 +469,15 @@ describe('PoPageDynamicTableComponent:', () => {
         expect(component.autoRouter).toEqual(true);
         expect(component.title).toEqual('Test');
       }));
+    });
+
+    it('getInitialValuesFromFilter: should return formatted init values from filters', () => {
+      const filters = { name: 'teste' };
+      component.fields = [{ property: 'name', filter: true, initValue: 'teste' }, { property: 'city' }];
+
+      const returnedValue = component['getInitialValuesFromFilter']();
+
+      expect(returnedValue).toEqual(filters);
     });
 
     it('navigateTo: shouldn`t call `router.config.unshift` and `navigateTo` only one time if `autoRouter` is false', fakeAsync(() => {
