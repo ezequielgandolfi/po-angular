@@ -55,10 +55,6 @@ export class PoPageDynamicSearchComponent extends PoPageDynamicSearchBaseCompone
     ngModel: 'quickFilter',
     placeholder: this.literals.searchPlaceholder
   };
-
-  // Flag to control when changeDisclaimerGroup should be called
-  private changeDisclaimersEnabled: boolean = false;
-
   private quickFilter;
 
   @ViewChild(PoAdvancedFilterComponent, { static: true }) poAdvancedFilter: PoAdvancedFilterComponent;
@@ -107,7 +103,6 @@ export class PoPageDynamicSearchComponent extends PoPageDynamicSearchBaseCompone
   }
 
   onAction() {
-    this.changeDisclaimersEnabled = false;
     this._disclaimerGroup.disclaimers = [
       { property: 'search', label: `${this.literals.quickSearchLabel} ${this.quickFilter}`, value: this.quickFilter }
     ];
@@ -130,12 +125,9 @@ export class PoPageDynamicSearchComponent extends PoPageDynamicSearchBaseCompone
   }
 
   onAdvancedSearch(filters) {
-    this.changeDisclaimersEnabled = false;
     this._disclaimerGroup.disclaimers = this.setDisclaimers(filters);
 
-    if (this.keepFilters) {
-      this.setFilters(filters);
-    }
+    this.setFilters(filters);
 
     this.advancedSearch.emit(filters);
   }
@@ -210,12 +202,21 @@ export class PoPageDynamicSearchComponent extends PoPageDynamicSearchBaseCompone
   }
 
   private onChangeDisclaimerGroup(disclaimers) {
-    if (this.changeDisclaimersEnabled) {
+    if ((!this.disclaimersEqualsFilters(disclaimers) && !this.isQuickSearch(disclaimers)) || disclaimers.length === 0) {
       this.changeDisclaimers.emit(disclaimers);
       this.setFilters(this.formatsFilterValuesToUpdateDisclaimers(disclaimers));
-    } else {
-      this.changeDisclaimersEnabled = true;
     }
+  }
+
+  private disclaimersEqualsFilters(disclaimers) {
+    const formattedDisclaimers = this.formatsFilterValuesToUpdateDisclaimers(disclaimers);
+    const formattedFilters = this.formatsFilterValuesToUpdateDisclaimers(this.filters);
+
+    return JSON.stringify(formattedDisclaimers) === JSON.stringify(formattedFilters);
+  }
+
+  private isQuickSearch(disclaimers) {
+    return disclaimers.length > 0 && disclaimers.find(element => element.property === 'search');
   }
 
   private setDisclaimers(filters) {
